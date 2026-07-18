@@ -1,0 +1,66 @@
+{% extends 'gallery/base.html' %}
+{% block title %}Gallery{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0"><i class="bi bi-grid text-primary"></i> Image Gallery ({{ total_images }})</h3>
+    <a href="{% url 'gallery:upload' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Upload New</a>
+</div>
+
+{% if page_obj %}
+<div class="row g-4">
+    {% for image in page_obj %}
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="card h-100 shadow-sm gallery-card">
+            <img src="{{ image.image.url }}" class="card-img-top gallery-img" alt="{{ image }}"
+                 data-bs-toggle="modal" data-bs-target="#imageModal{{ image.pk }}">
+            <div class="card-body p-2">
+                <p class="card-text small text-truncate mb-1">{{ image }}</p>
+                <p class="card-text text-muted" style="font-size: 0.75rem;">
+                    {{ image.file_size_display }} &middot; {{ image.uploaded_at|date:"M d, Y" }}
+                </p>
+                <form method="post" action="{% url 'gallery:delete' image.pk %}" onsubmit="return confirm('Delete this image permanently?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger w-100"><i class="bi bi-trash"></i> Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="imageModal{{ image.pk }}" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ image }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="{{ image.image.url }}" class="img-fluid rounded" alt="{{ image }}">
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-images" style="font-size: 4rem; color: #ccc;"></i>
+    <p class="text-muted mt-3">No images uploaded yet. <a href="{% url 'gallery:upload' %}">Upload your first image</a>.</p>
+</div>
+{% endif %}
+{% endblock %}
